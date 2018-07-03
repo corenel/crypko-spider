@@ -13,7 +13,6 @@ if __name__ == '__main__':
     parser.add_argument('--to', '-t', type=int, default=setting.CRYPKO_MAX_ID, help='Stop id')
     args = vars(parser.parse_args())
 
-    browser = webdriver.Chrome()
     if not os.path.exists(setting.SAVE_DIR):
         os.makedirs(setting.SAVE_DIR)
 
@@ -21,7 +20,7 @@ if __name__ == '__main__':
         print('====== {} ======='.format(crypko_id))
 
         if not os.path.exists(setting.SAVE_FILENAME.format(crypko_id)):
-            browser.get(setting.CRYPKO_CARD_PAGE.format(crypko_id))
+            browser = util.get_browser(crypko_id)
             img_src = util.extract_img_src(browser, crypko_id)
             tags = util.extract_attributes(browser, crypko_id)
 

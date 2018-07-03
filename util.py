@@ -3,7 +3,12 @@ import setting
 
 
 def get_browser(crypko_id):
-    browser = webdriver.Chrome()
+    if setting.DEFAULT_BROWSER == 'Chrome':
+        browser = webdriver.Chrome()
+    elif setting.DEFAULT_BROWSER == 'Firefox':
+        browser = webdriver.Firefox()
+    else:
+        browser = webdriver.Chrome()
     browser.get(setting.CRYPKO_CARD_PAGE.format(crypko_id))
     return browser
 
