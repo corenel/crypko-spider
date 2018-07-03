@@ -1,24 +1,28 @@
 from selenium import webdriver
 import setting
+import time
 
 
-def get_browser(crypko_id):
+def get_browser():
     if setting.DEFAULT_BROWSER == 'Chrome':
         browser = webdriver.Chrome()
+        options = webdriver.ChromeOptions();
+        options.add_argument('headless');
     elif setting.DEFAULT_BROWSER == 'Firefox':
         browser = webdriver.Firefox()
     else:
         browser = webdriver.Chrome()
-    browser.get(setting.CRYPKO_CARD_PAGE.format(crypko_id))
     return browser
 
 
 def extract_img_src(browser, crypko_id):
     img = browser.find_elements_by_class_name('progressive-image-main')
-    while len(img) == 0:
+    while len(img) == 0 or img[0].get_property('src') == '':
         img = browser.find_elements_by_class_name('progressive-image-main')
-        if len(img) == 0:
-            browser = get_browser(crypko_id)
+        if len(img) == 0 or img[0].get_property('src') == '':
+            # browser = get_browser()
+            browser.get(setting.CRYPKO_CARD_PAGE.format(crypko_id))
+            time.sleep(0.1)
     return img[0].get_property('src')
 
 
