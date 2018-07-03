@@ -1,26 +1,20 @@
-from selenium import webdriver
+from multiprocessing import Process
 
 import argparse
 import requests
 import json
 import time
+import shutil
 import os
 
 import util
 import setting
 
-if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='Spider for Crypko')
-    parser.add_argument('--from', '-f', type=int, default=1, help='Start id')
-    parser.add_argument('--to', '-t', type=int, default=setting.CRYPKO_MAX_ID, help='Stop id')
-    args = vars(parser.parse_args())
 
-    if not os.path.exists(setting.SAVE_DIR):
-        os.makedirs(setting.SAVE_DIR)
-
+def image_crawl(start_id, end_id):
     browser = util.get_browser()
 
-    for crypko_id in range(args['from'], args['to'] + 1):
+    for crypko_id in range(start_id, end_id + 1):
         print('====== {} ======='.format(crypko_id))
         start = time.time()
         if not os.path.exists(setting.SAVE_FILENAME.format(crypko_id)):
@@ -39,7 +33,40 @@ if __name__ == '__main__':
                         'tags': tags
                     }, f)
 
-                r = requests.get(img_src)
+                try:
+                    r = requests.get(img_src)
+                except requests.exceptions.SSLError:
+                    continue
+
                 with open(setting.SAVE_FILENAME.format(crypko_id), 'wb') as f:
                     f.write(r.content)
-        print('elapsed: {} s'.format(time.time() - start))
+            print('elapsed: {} s'.format(time.time() - start))
+
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser(description='Spider for Crypko')
+    parser.add_argument('--from', '-f', type=int, default=1, help='Start id')
+    parser.add_argument('--to', '-t', type=int, default=setting.CRYPKO_MAX_ID, help='Stop id')
+    parser.add_argument('--mp', action='store_true', help='Use multi-processing')
+    args = vars(parser.parse_args())
+
+    if not os.path.exists(setting.SAVE_DIR):
+        os.makedirs(setting.SAVE_DIR)
+
+    if not args['mp']:
+        image_crawl(args['from'], args['to'])
+    else:
+        cnt = 0
+        step = (args['to'] - args['from']) // setting.NUM_PROCESS
+        process_list = []
+        for i in range(setting.NUM_PROCESS):
+            p = Process(target=image_crawl, args=(args['from'] + cnt * step,
+                                                  args['from'] + (cnt + 1) * step))
+            process_list.append(p)
+            cnt += 1
+        try:
+            for p in process_list:
+                p.start()
+        except:
+            for p in process_list:
+                p.join()

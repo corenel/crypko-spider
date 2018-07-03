@@ -9,3 +9,5 @@ SAVE_FILENAME = os.path.join(SAVE_DIR, '{:09d}.jpg')
 
 # DEFAULT_BROWSER = 'Firefox'
 DEFAULT_BROWSER = 'Chrome'
+
+NUM_PROCESS = 8
