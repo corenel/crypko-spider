@@ -84,6 +84,10 @@ if __name__ == '__main__':
                 p.join()
             sys.exit(0)
         except:
-            for p in process_list:
+            for cnt, p in enumerate(process_list):
                 if not p.is_alive():
+                    # re-create and start
+                    p = Process(target=image_crawl, args=(args['from'] + cnt * step,
+                                                          args['from'] + (cnt + 1) * step))
+                    process_list.insert(cnt, p)
                     p.start()
