@@ -5,6 +5,12 @@ import time
 
 
 def get_browser():
+    """
+    Get browser by setting
+
+    :return: browser instance
+    :rtype: webdriver.Chrome
+    """
     if setting.DEFAULT_BROWSER == 'Chrome':
         browser = webdriver.Chrome()
         options = webdriver.ChromeOptions();
@@ -16,21 +22,38 @@ def get_browser():
     return browser
 
 
-def extract_img_src(browser, crypko_id):
+def extract_img_src(browser):
+    """
+    Extract source link of avatar image from web page
+
+    :param browser: opened browser
+    :type browser: webdriver.Chrome
+    :return: source link of avatar image
+    :rtype: str
+    """
     img = browser.find_elements_by_class_name('progressive-image-main')
-    while len(img) == 0 or img[0].get_property('src') == '':
+    while len(img) == 0 or (len(img) > 0 and img[0].get_property('src') == ''):
         img = browser.find_elements_by_class_name('progressive-image-main')
-        if len(img) == 0 or img[0].get_property('src') == '':
-            # browser = get_browser()
-            time.sleep(1)
+        if len(img) == 0 or (len(img) > 0 and img[0].get_property('src') == ''):
+            time.sleep(0.1)
             try:
-                browser.get(setting.CRYPKO_CARD_PAGE.format(crypko_id))
+                curr_url = browser.current_url
+                browser.get(curr_url)
+                # browser.refresh()
             except TimeoutException:
                 continue
     return img[0].get_property('src')
 
 
-def extract_attributes(browser, crypko_id):
+def extract_attributes(browser):
+    """
+    Extract attribute tags of avatar image from web page
+
+    :param browser: opened browser
+    :type browser: webdriver.Chrome
+    :return: attribute tags of avatar image
+    :rtype: list
+    """
     attr_tags = browser.find_elements_by_class_name('attr-tag')
     attr_results = []
     for attr_tag in attr_tags:
@@ -43,6 +66,14 @@ def extract_attributes(browser, crypko_id):
 
 
 def extract_sub_attributes(browser):
+    """
+    Extract sub attribute tags of avatar image from web page
+
+    :param browser: opened browser
+    :type browser: webdriver.Chrome
+    :return: sub attribute tags of avatar image
+    :rtype: list
+    """
     sub_attrs = browser.find_elements_by_class_name('sub-attr')
     sub_attr_results = []
     for sub_attr in sub_attrs:
