@@ -1,7 +1,9 @@
 from selenium import webdriver
-from selenium.common.exceptions import TimeoutException
+from selenium.common.exceptions import TimeoutException, WebDriverException
+
 import setting
 import time
+import sys
 
 
 def get_browser():
@@ -32,17 +34,24 @@ def extract_img_src(browser):
     :rtype: str
     """
     img = browser.find_elements_by_class_name('progressive-image-main')
-    while len(img) == 0 or (len(img) > 0 and img[0].get_property('src') == ''):
-        img = browser.find_elements_by_class_name('progressive-image-main')
-        if len(img) == 0 or (len(img) > 0 and img[0].get_property('src') == ''):
-            time.sleep(0.1)
-            try:
-                curr_url = browser.current_url
-                browser.get(curr_url)
-                # browser.refresh()
-            except TimeoutException:
-                continue
-    return img[0].get_property('src')
+    cnt_failed = 0
+    try:
+        while len(img) == 0 or (len(img) > 0 and img[0].get_property('src') == ''):
+            img = browser.find_elements_by_class_name('progressive-image-main')
+            if cnt_failed >= 10:
+                browser.refresh()
+            if len(img) == 0 or (len(img) > 0 and img[0].get_property('src') == ''):
+                time.sleep(1)
+                try:
+                    curr_url = browser.current_url
+                    browser.get(curr_url)
+                    # browser.refresh()
+                except TimeoutException:
+                    continue
+                cnt_failed += 1
+        return img[0].get_property('src')
+    except WebDriverException:
+        return None
 
 
 def extract_attributes(browser):
