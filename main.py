@@ -4,7 +4,7 @@ import argparse
 import requests
 import json
 import time
-import shutil
+import sys
 import os
 
 import util
@@ -15,16 +15,12 @@ def image_crawl(start_id, end_id):
     browser = util.get_browser()
 
     for crypko_id in range(start_id, end_id + 1):
-        print('====== {} ======='.format(crypko_id))
-        start = time.time()
         if not os.path.exists(setting.SAVE_FILENAME.format(crypko_id)):
+            start = time.time()
             browser.get(setting.CRYPKO_CARD_PAGE.format(crypko_id))
 
             img_src = util.extract_img_src(browser, crypko_id)
             tags = util.extract_attributes(browser, crypko_id)
-
-            print('img: {}'.format(img_src))
-            print('tags: {}'.format(tags))
 
             if img_src:
                 with open(setting.SAVE_JSONNAME.format(crypko_id), 'w') as f:
@@ -35,11 +31,14 @@ def image_crawl(start_id, end_id):
 
                 try:
                     r = requests.get(img_src)
+                    with open(setting.SAVE_FILENAME.format(crypko_id), 'wb') as f:
+                        f.write(r.content)
                 except requests.exceptions.SSLError:
-                    continue
+                    print('SSL error when downloading image file, skip this one')
 
-                with open(setting.SAVE_FILENAME.format(crypko_id), 'wb') as f:
-                    f.write(r.content)
+            print('====== {} ======='.format(crypko_id))
+            print('img: {}'.format(img_src))
+            print('tags: {}'.format(tags))
             print('elapsed: {} s'.format(time.time() - start))
 
 
@@ -67,6 +66,11 @@ if __name__ == '__main__':
         try:
             for p in process_list:
                 p.start()
-        except:
+        except KeyboardInterrupt:
             for p in process_list:
                 p.join()
+            sys.exit(0)
+        except:
+            for p in process_list:
+                if not p.is_alive():
+                    p.start()

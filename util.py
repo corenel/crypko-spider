@@ -22,11 +22,11 @@ def extract_img_src(browser, crypko_id):
         img = browser.find_elements_by_class_name('progressive-image-main')
         if len(img) == 0 or img[0].get_property('src') == '':
             # browser = get_browser()
+            time.sleep(1)
             try:
                 browser.get(setting.CRYPKO_CARD_PAGE.format(crypko_id))
             except TimeoutException:
                 continue
-            time.sleep(0.1)
     return img[0].get_property('src')
 
 
