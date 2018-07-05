@@ -1,4 +1,5 @@
 from multiprocessing import Process
+from selenium.common.exceptions import WebDriverException
 
 import argparse
 import requests
@@ -27,8 +28,11 @@ def image_crawl(begin_id, end_id):
             browser.get(setting.CRYPKO_CARD_PAGE.format(crypko_id))
             time.sleep(1)
 
-            img_src = util.extract_img_src(browser)
-            tags = util.extract_attributes(browser)
+            try:
+                img_src = util.extract_img_src(browser)
+                tags = util.extract_attributes(browser)
+            except WebDriverException:
+                continue
 
             if img_src:
                 with open(setting.SAVE_JSONNAME.format(crypko_id), 'w') as f:
