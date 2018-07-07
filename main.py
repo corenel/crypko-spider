@@ -1,5 +1,7 @@
 from multiprocessing import Process
 from selenium.common.exceptions import WebDriverException
+from requests.exceptions import SSLError
+from urllib3.exceptions import ProtocolError
 
 import argparse
 import requests
@@ -45,8 +47,8 @@ def image_crawl(begin_id, end_id):
                     r = requests.get(img_src)
                     with open(setting.SAVE_FILENAME.format(crypko_id), 'wb') as f:
                         f.write(r.content)
-                except requests.exceptions.SSLError:
-                    print('SSL error when downloading image file, skip this one')
+                except SSLError or ProtocolError:
+                    print('Connection error when downloading image file, skip this one')
 
             print('====== {} ======='.format(crypko_id))
             print('img: {}'.format(img_src))
